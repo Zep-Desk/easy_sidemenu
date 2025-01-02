@@ -34,10 +34,15 @@ class SideMenuItemWithGlobal extends StatefulWidget {
     this.tooltipContent,
     this.trailing,
     this.builder,
+    this.selectedTitleTextStyle,
+    this.unselectedTitleTextStyle,
   })  : assert(
-  title != null || activeIcon != null || inactiveIcon != null || builder != null,
-  'At least a title, or some icon (activeIcon/inactiveIcon), or a builder is required',
-  ),
+          title != null ||
+              activeIcon != null ||
+              inactiveIcon != null ||
+              builder != null,
+          'At least a title, or some icon (activeIcon/inactiveIcon), or a builder is required',
+        ),
         super(key: key);
 
   /// A function called when the user taps on the [SideMenuItemWithGlobal]
@@ -77,6 +82,12 @@ class SideMenuItemWithGlobal extends StatefulWidget {
   /// takes `(BuildContext context, SideMenuDisplayMode displayMode)`.
   final SideMenuItemBuilder? builder;
 
+  /// Custom text style for the title when the item is selected
+  final TextStyle? selectedTitleTextStyle;
+
+  /// Custom text style for the title when the item is unselected
+  final TextStyle? unselectedTitleTextStyle;
+
   @override
   State<SideMenuItemWithGlobal> createState() => _SideMenuItemState();
 }
@@ -91,12 +102,10 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
     super.initState();
     _nonNullableWrap(WidgetsBinding.instance)!
         .addPostFrameCallback((timeStamp) {
-      // Set initialPage only if the widget is still mounted
       if (mounted) {
         currentPage = widget.global.controller.currentPage;
       }
       if (!isDisposed) {
-        // Bind controller callback
         widget.global.controller.addListener(_handleChange);
       }
     });
@@ -122,7 +131,6 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
     });
   }
 
-  /// Ensure setState is only called if the widget is still mounted
   void safeSetState(VoidCallback fn) {
     if (mounted) {
       setState(fn);
@@ -163,10 +171,8 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
     return -1;
   }
 
-  /// Return the background color of the [SideMenuItemWithGlobal]
   Color _setColor() {
     if (_getIndexOfCurrentSideMenuItemWidget() == currentPage) {
-      // Selected item
       if (isHovered) {
         return widget.global.style.selectedHoverColor ??
             widget.global.style.selectedColor ??
@@ -176,22 +182,17 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
             Theme.of(context).highlightColor;
       }
     } else if (isHovered) {
-      // Hover, but not selected
       return widget.global.style.hoverColor ?? Colors.transparent;
     } else {
       return Colors.transparent;
     }
   }
 
-  /// Generates the icon according to [mainIcon] or [iconWidget].
-  /// If mainIcon is `null`, it returns [iconWidget] or an empty SizedBox.
-  /// If [badgeContent] is provided, wraps the icon with a Badge widget.
   Widget _generateIcon(Icon? mainIcon, Widget? iconWidget) {
     if (mainIcon == null) {
       return iconWidget ?? const SizedBox();
     }
 
-    // Determine icon color and size depending on whether it's selected
     final Color iconColor = _isCurrentSideMenuItemSelected()
         ? widget.global.style.selectedIconColor ?? Colors.black
         : widget.global.style.unselectedIconColor ?? Colors.black54;
@@ -203,7 +204,6 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
       size: iconSize,
     );
 
-    // If there is badgeContent, show the icon inside a Badge
     if (widget.badgeContent != null) {
       return bdg.Badge(
         badgeContent: widget.badgeContent!,
@@ -224,7 +224,6 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
 
   @override
   Widget build(BuildContext context) {
-    // If a custom builder is provided, skip the default build
     if (widget.builder != null) {
       return ValueListenableBuilder(
         valueListenable: widget.global.displayModeState,
@@ -264,7 +263,7 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
 
               return Tooltip(
                 message: (displayMode == SideMenuDisplayMode.compact &&
-                    widget.global.style.showTooltip)
+                        widget.global.style.showTooltip)
                     ? widget.tooltipContent ?? widget.title ?? ""
                     : "",
                 child: Padding(
@@ -277,18 +276,15 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
                       SizedBox(
                         width: widget.global.style.itemInnerSpacing * 2,
                       ),
-
-                      /// Here we define which icon to display:
-                      /// activeIcon if the item is selected, otherwise inactiveIcon.
                       _generateIcon(
                         _isCurrentSideMenuItemSelected()
                             ? widget.activeIcon
                             : widget.inactiveIcon,
                         widget.iconWidget,
                       ),
-
-                      SizedBox(width: widget.global.style.itemInnerSpacing),
-
+                      SizedBox(
+                        width: widget.global.style.itemInnerSpacing,
+                      ),
                       if (displayMode == SideMenuDisplayMode.open) ...[
                         Expanded(
                           child: Align(
@@ -298,13 +294,19 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
                               overflow: TextOverflow.ellipsis,
                               style: _isCurrentSideMenuItemSelected()
                                   ? const TextStyle(
-                                  fontSize: 17, color: Colors.black)
-                                  .merge(widget
-                                  .global.style.selectedTitleTextStyle)
+                                          fontSize: 17, color: Colors.black)
+                                      .merge(
+                                      widget.selectedTitleTextStyle ??
+                                          widget.global.style
+                                              .selectedTitleTextStyle,
+                                    )
                                   : const TextStyle(
-                                  fontSize: 17, color: Colors.black54)
-                                  .merge(widget.global.style
-                                  .unselectedTitleTextStyle),
+                                          fontSize: 17, color: Colors.black54)
+                                      .merge(
+                                      widget.unselectedTitleTextStyle ??
+                                          widget.global.style
+                                              .unselectedTitleTextStyle,
+                                    ),
                             ),
                           ),
                         ),

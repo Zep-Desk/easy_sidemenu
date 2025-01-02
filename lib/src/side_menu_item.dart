@@ -45,6 +45,12 @@ class SideMenuItem {
   final Widget Function(BuildContext context, SideMenuDisplayMode displayMode)?
       builder;
 
+  /// Custom text style for the title when the item is selected
+  final TextStyle? selectedTitleTextStyle;
+
+  /// Custom text style for the title when the item is unselected
+  final TextStyle? unselectedTitleTextStyle;
+
   const SideMenuItem({
     this.onTap,
     this.title,
@@ -56,11 +62,14 @@ class SideMenuItem {
     this.tooltipContent,
     this.trailing,
     this.builder,
+    this.selectedTitleTextStyle,
+    this.unselectedTitleTextStyle,
   })  : assert(
-            title != null ||
-                activeIcon != null ||
-                inactiveIcon != null ||
-                builder != null,
-            'Title, icon and builder should not be empty at the same time'),
+          title != null ||
+              activeIcon != null ||
+              inactiveIcon != null ||
+              builder != null,
+          'Title, icon and builder should not be empty at the same time',
+        ),
         super();
 }

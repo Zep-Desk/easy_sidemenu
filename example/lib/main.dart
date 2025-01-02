@@ -12,10 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'easy_sidemenu Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: false
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: false),
       home: const MyHomePage(title: 'easy_sidemenu Demo'),
       debugShowCheckedModeBanner: false,
     );
@@ -127,9 +124,8 @@ class _MyHomePageState extends State<MyHomePage> {
               SideMenuExpansionItem(
                 title: "Expansion Item",
                 icon: const Icon(Icons.kitchen),
-                onTap: (index, _, isExpanded) => {
-                  print('$index, expanded $isExpanded')
-                },
+                onTap: (index, _, isExpanded) =>
+                    {debugPrint('$index, expanded $isExpanded')},
                 children: [
                   SideMenuItem(
                     title: 'Expansion Item 1',
@@ -195,8 +191,16 @@ class _MyHomePageState extends State<MyHomePage> {
                 onTap: (index, _) {
                   sideMenu.changePage(index);
                 },
-                activeIcon: const Icon(Icons.settings),
-                inactiveIcon: const Icon(Icons.settings_outlined),
+                activeIcon: const Icon(
+                  Icons.settings,
+                  color: Colors.red,
+                ),
+                inactiveIcon: const Icon(
+                  Icons.settings_outlined,
+                  color: Colors.blue,
+                ),
+                selectedTitleTextStyle: const TextStyle(color: Colors.red),
+                unselectedTitleTextStyle: const TextStyle(color: Colors.blue),
               ),
               // SideMenuItem(
               //   onTap:(index, _){
@@ -217,7 +221,9 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
           ),
-          const VerticalDivider(width: 0,),
+          const VerticalDivider(
+            width: 0,
+          ),
           Expanded(
             child: PageView(
               controller: pageController,

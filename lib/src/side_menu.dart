@@ -38,7 +38,7 @@ class SideMenu extends StatefulWidget {
   final bool? showToggle;
 
   /// By default footer only shown when display mode is open
-  /// If you want always shown footer set it to true
+  /// If you want always show footer set it to true
   final bool? alwaysShowFooter;
 
   /// Notify when [SideMenuDisplayMode] changed
@@ -91,6 +91,8 @@ class SideMenu extends StatefulWidget {
           tooltipContent: data.tooltipContent,
           trailing: data.trailing,
           builder: data.builder,
+          selectedTitleTextStyle: data.selectedTitleTextStyle,
+          unselectedTitleTextStyle: data.unselectedTitleTextStyle,
         );
       } else if (data is SideMenuExpansionItem) {
         sideMenuExpansionItemIndex = sideMenuExpansionItemIndex + 1;
@@ -114,6 +116,9 @@ class SideMenu extends StatefulWidget {
                     tooltipContent: childData.tooltipContent,
                     trailing: childData.trailing,
                     builder: childData.builder,
+                    selectedTitleTextStyle: childData.selectedTitleTextStyle,
+                    unselectedTitleTextStyle:
+                        childData.unselectedTitleTextStyle,
                   ))
               .toList(),
         );
@@ -142,9 +147,6 @@ class _SideMenuState extends State<SideMenu> {
     collapseWidth = widget.collapseWidth ?? 600;
   }
 
-  // Updates the widget with the new `SideMenu` and sets default values for `showToggle`, `alwaysShowFooter`, and `collapseWidth`.
-  // If `style` is not provided, a new `SideMenuStyle` is assigned to the `global.style`.
-  // Overrides the superclass method to handle widget updates.
   @override
   void didUpdateWidget(covariant SideMenu oldWidget) {
     showToggle = widget.showToggle ?? false;
@@ -158,10 +160,11 @@ class _SideMenuState extends State<SideMenu> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _currentWidth = _calculateWidth(
-        widget.global.style.displayMode ?? SideMenuDisplayMode.auto, context);
+      widget.global.style.displayMode ?? SideMenuDisplayMode.auto,
+      context,
+    );
   }
 
-  // Toggles the state of the hamburger between open and close. No parameters. No return value.
   void _toggleHamburgerState() {
     if (_hamburgerMode == SideMenuHamburgerMode.close) {
       setState(() {
@@ -174,15 +177,12 @@ class _SideMenuState extends State<SideMenu> {
     }
   }
 
-  // Notifies the parent widget if the onDisplayModeChanged callback is provided.
   void _notifyParent() {
     if (widget.onDisplayModeChanged != null) {
       widget.onDisplayModeChanged!(widget.global.displayModeState.value);
     }
   }
 
-  // Calculate and return the appropriate width size based on the SideMenuDisplayMode and BuildContext.
-  /// Set [SideMenu] width according to displayMode and notify parent widget.
   double _calculateWidth(SideMenuDisplayMode mode, BuildContext context) {
     double width = widget.global.style.openSideMenuWidth ?? 300;
 
@@ -244,31 +244,20 @@ class _SideMenuState extends State<SideMenu> {
   }
 
   @override
-
-  /// Builds the side menu widget.
-  ///
-  /// This method builds the side menu widget based on the provided parameters.
-  /// It sets the necessary variables in the [SideMenuGlobalState], calculates the
-  /// width of the side menu based on the display mode and the context, and returns
-  /// the side menu widget.
   Widget build(BuildContext context) {
-    // Set the variables in the SideMenuGlobalState
     widget.global.controller = widget.controller;
     widget.global.items = widget.sidemenuitems.items;
 
-    // Create the hamburger icon button
     final IconButton hamburgerIcon = IconButton(
       icon: const Icon(IconData(0xe3dc, fontFamily: 'MaterialIcons')),
       onPressed: _toggleHamburgerState,
     );
 
-    // Calculate the width of the side menu
     _currentWidth = _calculateWidth(
       widget.global.style.displayMode ?? SideMenuDisplayMode.auto,
       context,
     );
 
-    // Return the side menu widget
     return ((widget.global.style.showHamburger) &&
             (_hamburgerMode == SideMenuHamburgerMode.close))
         ? Align(alignment: Alignment.topLeft, child: hamburgerIcon)
