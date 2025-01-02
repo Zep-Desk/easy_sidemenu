@@ -73,7 +73,8 @@ class FirstPage extends StatelessWidget {
                 items: [
                   SideMenuItem(
                     // priority: 0,
-                    icon: const Icon(Icons.send),
+                    activeIcon: const Icon(Icons.send),
+                    inactiveIcon: const Icon(Icons.send_outlined),
                     onTap: (_, __) {
                       Navigator.of(context)
                           .popAndPushNamed(SecondPage.routeName);

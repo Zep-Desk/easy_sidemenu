@@ -14,63 +14,67 @@ class SideMenuItemList {
 class SideMenuItemWithGlobal extends StatefulWidget {
   /// #### Side Menu Item
   ///
-  /// This is a widget as [SideMenu] items with text and icon
+  /// This is a widget for use in [SideMenu] as items, with text and icon(s).
+  ///
+  /// - If **activeIcon** and **inactiveIcon** are provided, they will be used
+  ///   to represent the selected and non-selected states, respectively.
+  /// - If you only provide one of them, the other will remain `null` and will not be shown.
+  /// - If both are null, but you have an [iconWidget], that widget will be shown.
+  /// - If you want complete customization, use [builder].
   const SideMenuItemWithGlobal({
     Key? key,
     required this.global,
     this.onTap,
     this.title,
-    this.icon,
+    this.activeIcon,
+    this.inactiveIcon,
     this.iconWidget,
     this.badgeContent,
     this.badgeColor,
     this.tooltipContent,
     this.trailing,
     this.builder,
-  })  : assert(title != null || icon != null || builder != null,
-            'Title, icon and builder should not be empty at the same time'),
+  })  : assert(
+  title != null || activeIcon != null || inactiveIcon != null || builder != null,
+  'At least a title, or some icon (activeIcon/inactiveIcon), or a builder is required',
+  ),
         super(key: key);
 
-  /// A function that call when tap on [SideMenuItemWithGlobal]
+  /// A function called when the user taps on the [SideMenuItemWithGlobal]
   final void Function(int index, SideMenuController sideMenuController)? onTap;
 
-  /// Global object of [SideMenu]
+  /// [SideMenu]'s global object
   final Global global;
 
   /// Title text
   final String? title;
 
-  /// A Icon to display before [title]
-  final Icon? icon;
+  /// Icon to display when this item is selected/active
+  final Icon? activeIcon;
 
-  /// This is displayed instead if [icon] is null
+  /// Icon to display when this item is non-selected/inactive
+  final Icon? inactiveIcon;
+
+  /// If you need to display a completely custom icon,
+  /// provide this [Widget]. If [activeIcon] and [inactiveIcon] are null,
+  /// `iconWidget` will be displayed.
   final Widget? iconWidget;
 
-  /// Text show next to the icon as badge
-  /// By default this is null
+  /// Text shown as a “badge” next to the icon (e.g., notification count)
   final Widget? badgeContent;
 
-  /// Background color for badge
+  /// Background color for the badge
   final Color? badgeColor;
 
-  /// Content of the tooltip - if not filled, the [title] will
-  /// be used. [showTooltipOverItemsName] must be set to true.
+  /// The tooltip text (shown when in “compact” mode and
+  /// [showTooltipOverItemsName] is `true`).
   final String? tooltipContent;
 
-  /// A widget to display after the title.
-  ///
-  /// Typically an [Icon] widget.
-  ///
-  /// To show right-aligned metadata (assuming left-to-right reading order;
-  /// left-aligned for right-to-left reading order), consider using a [Row] with
-  /// [CrossAxisAlignment.baseline] alignment whose first item is [Expanded] and
-  /// whose second child is the metadata text, instead of using the [trailing]
-  /// property.
+  /// A widget displayed after the item's title (e.g., a chevron).
   final Widget? trailing;
 
-  /// Create custom sideMenuItem widget with builder
-  ///
-  /// Builder has `(BuildContext context, SideMenuDisplayMode displayMode)`
+  /// To create a completely custom item, use this builder, which
+  /// takes `(BuildContext context, SideMenuDisplayMode displayMode)`.
   final SideMenuItemBuilder? builder;
 
   @override
@@ -87,12 +91,12 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
     super.initState();
     _nonNullableWrap(WidgetsBinding.instance)!
         .addPostFrameCallback((timeStamp) {
-      // Set initialPage, only if the widget is still mounted
+      // Set initialPage only if the widget is still mounted
       if (mounted) {
         currentPage = widget.global.controller.currentPage;
       }
       if (!isDisposed) {
-        // Set controller SideMenuItem page controller callback
+        // Bind controller callback
         widget.global.controller.addListener(_handleChange);
       }
     });
@@ -101,7 +105,6 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
 
   void update() {
     if (mounted) {
-      // Trigger a build only if the widget is still mounted
       setState(() {});
     }
   }
@@ -119,10 +122,7 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
     });
   }
 
-  /// Ensure that safeSetState only calls setState when the widget is still mounted.
-  ///
-  /// When adding changes to this library in future, use this function instead of
-  /// if (mounted) condition on setState at every place
+  /// Ensure setState is only called if the widget is still mounted
   void safeSetState(VoidCallback fn) {
     if (mounted) {
       setState(fn);
@@ -130,23 +130,13 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
   }
 
   bool isSameWidget(SideMenuItemWithGlobal other) {
-    if (other.icon == widget.icon &&
+    return (other.inactiveIcon == widget.inactiveIcon &&
+        other.activeIcon == widget.activeIcon &&
         other.title == widget.title &&
         other.builder == widget.builder &&
-        other.trailing == widget.trailing) {
-      return true;
-    } else {
-      return false;
-    }
+        other.trailing == widget.trailing);
   }
 
-  /// This allows a value of type T or T?
-  /// to be treated as a value of type T?.
-  ///
-  /// We use this so that APIs that have become
-  /// non-nullable can still be used with `!` and `?`
-  /// to support older versions of the API as well.
-  /// https://docs.flutter.dev/development/tools/sdk/release-notes/release-notes-3.0.0#your-code
   T? _nonNullableWrap<T>(T? value) => value;
 
   int _getIndexOfCurrentSideMenuItemWidget() {
@@ -173,9 +163,10 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
     return -1;
   }
 
-  /// Set background color of [SideMenuItemWithGlobal]
+  /// Return the background color of the [SideMenuItemWithGlobal]
   Color _setColor() {
     if (_getIndexOfCurrentSideMenuItemWidget() == currentPage) {
+      // Selected item
       if (isHovered) {
         return widget.global.style.selectedHoverColor ??
             widget.global.style.selectedColor ??
@@ -185,17 +176,22 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
             Theme.of(context).highlightColor;
       }
     } else if (isHovered) {
+      // Hover, but not selected
       return widget.global.style.hoverColor ?? Colors.transparent;
     } else {
       return Colors.transparent;
     }
   }
 
-  // Generates an icon based on the mainIcon and iconWidget provided. If mainIcon is null, it returns iconWidget or a SizedBox if iconWidget is also null.
-  // Determines the color and size of the icon based on the current selection state. If a badgeContent is provided,
-  // wraps the icon with a Badge widget using the badgeContent, badgeColor, and position specified.
+  /// Generates the icon according to [mainIcon] or [iconWidget].
+  /// If mainIcon is `null`, it returns [iconWidget] or an empty SizedBox.
+  /// If [badgeContent] is provided, wraps the icon with a Badge widget.
   Widget _generateIcon(Icon? mainIcon, Widget? iconWidget) {
-    if (mainIcon == null) return iconWidget ?? const SizedBox();
+    if (mainIcon == null) {
+      return iconWidget ?? const SizedBox();
+    }
+
+    // Determine icon color and size depending on whether it's selected
     final Color iconColor = _isCurrentSideMenuItemSelected()
         ? widget.global.style.selectedIconColor ?? Colors.black
         : widget.global.style.unselectedIconColor ?? Colors.black54;
@@ -207,16 +203,19 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
       size: iconSize,
     );
 
-    return widget.badgeContent == null
-        ? icon
-        : bdg.Badge(
-            badgeContent: widget.badgeContent!,
-            badgeStyle: bdg.BadgeStyle(
-              badgeColor: widget.badgeColor ?? Colors.red,
-            ),
-            position: bdg.BadgePosition.topEnd(top: -13, end: -7),
-            child: icon,
-          );
+    // If there is badgeContent, show the icon inside a Badge
+    if (widget.badgeContent != null) {
+      return bdg.Badge(
+        badgeContent: widget.badgeContent!,
+        badgeStyle: bdg.BadgeStyle(
+          badgeColor: widget.badgeColor ?? Colors.red,
+        ),
+        position: bdg.BadgePosition.topEnd(top: -13, end: -7),
+        child: icon,
+      );
+    } else {
+      return icon;
+    }
   }
 
   bool _isCurrentSideMenuItemSelected() {
@@ -225,92 +224,8 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.builder == null) {
-      return InkWell(
-        onTap: () => widget.onTap?.call(
-            _getIndexOfCurrentSideMenuItemWidget(), widget.global.controller),
-        onHover: (value) {
-          safeSetState(() {
-            isHovered = value;
-          });
-        },
-        highlightColor: Colors.transparent,
-        focusColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-        splashColor: Colors.transparent,
-        child: Padding(
-          padding: widget.global.style.itemOuterPadding,
-          child: Container(
-            height: widget.global.style.itemHeight,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: _setColor(),
-              borderRadius: widget.global.style.itemBorderRadius,
-            ),
-            child: ValueListenableBuilder(
-              valueListenable: widget.global.displayModeState,
-              builder: (context, value, child) {
-                return Tooltip(
-                  message: (value == SideMenuDisplayMode.compact &&
-                          widget.global.style.showTooltip)
-                      ? widget.tooltipContent ?? widget.title ?? ""
-                      : "",
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: value == SideMenuDisplayMode.compact
-                            ? widget.global.style.itemInnerSpacing
-                            : widget.global.style.itemInnerSpacing),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                            width: widget.global.style.itemInnerSpacing * 2),
-                        _generateIcon(widget.icon, widget.iconWidget),
-                        SizedBox(width: widget.global.style.itemInnerSpacing),
-                        if (value == SideMenuDisplayMode.open) ...[
-                          Expanded(
-                            // Expanded will allow the text to take up all available space
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                widget.title ?? '',
-                                overflow: TextOverflow
-                                    .ellipsis, // Helps to handle long text
-                                style: _getIndexOfCurrentSideMenuItemWidget() ==
-                                        currentPage.ceil()
-                                    ? const TextStyle(
-                                            fontSize: 17, color: Colors.black)
-                                        .merge(widget.global.style
-                                            .selectedTitleTextStyle)
-                                    : const TextStyle(
-                                            fontSize: 17, color: Colors.black54)
-                                        .merge(widget.global.style
-                                            .unselectedTitleTextStyle),
-                              ),
-                            ),
-                          ),
-                          const SizedBox.shrink(),
-                          if (widget.trailing != null &&
-                              widget.global.showTrailing) ...[
-                            // Aligning the trailing widget to the right
-                            Flexible(
-                              child: Align(
-                                alignment: Alignment.centerRight,
-                                child: widget.trailing!,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      );
-    } else {
+    // If a custom builder is provided, skip the default build
+    if (widget.builder != null) {
       return ValueListenableBuilder(
         valueListenable: widget.global.displayModeState,
         builder: (context, value, child) {
@@ -318,5 +233,100 @@ class _SideMenuItemState extends State<SideMenuItemWithGlobal> {
         },
       );
     }
+
+    return InkWell(
+      onTap: () => widget.onTap?.call(
+        _getIndexOfCurrentSideMenuItemWidget(),
+        widget.global.controller,
+      ),
+      onHover: (value) {
+        safeSetState(() {
+          isHovered = value;
+        });
+      },
+      highlightColor: Colors.transparent,
+      focusColor: Colors.transparent,
+      hoverColor: Colors.transparent,
+      splashColor: Colors.transparent,
+      child: Padding(
+        padding: widget.global.style.itemOuterPadding,
+        child: Container(
+          height: widget.global.style.itemHeight,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: _setColor(),
+            borderRadius: widget.global.style.itemBorderRadius,
+          ),
+          child: ValueListenableBuilder(
+            valueListenable: widget.global.displayModeState,
+            builder: (context, value, child) {
+              final displayMode = value as SideMenuDisplayMode;
+
+              return Tooltip(
+                message: (displayMode == SideMenuDisplayMode.compact &&
+                    widget.global.style.showTooltip)
+                    ? widget.tooltipContent ?? widget.title ?? ""
+                    : "",
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: widget.global.style.itemInnerSpacing,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: widget.global.style.itemInnerSpacing * 2,
+                      ),
+
+                      /// Here we define which icon to display:
+                      /// activeIcon if the item is selected, otherwise inactiveIcon.
+                      _generateIcon(
+                        _isCurrentSideMenuItemSelected()
+                            ? widget.activeIcon
+                            : widget.inactiveIcon,
+                        widget.iconWidget,
+                      ),
+
+                      SizedBox(width: widget.global.style.itemInnerSpacing),
+
+                      if (displayMode == SideMenuDisplayMode.open) ...[
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              widget.title ?? '',
+                              overflow: TextOverflow.ellipsis,
+                              style: _isCurrentSideMenuItemSelected()
+                                  ? const TextStyle(
+                                  fontSize: 17, color: Colors.black)
+                                  .merge(widget
+                                  .global.style.selectedTitleTextStyle)
+                                  : const TextStyle(
+                                  fontSize: 17, color: Colors.black54)
+                                  .merge(widget.global.style
+                                  .unselectedTitleTextStyle),
+                            ),
+                          ),
+                        ),
+                        const SizedBox.shrink(),
+                        if (widget.trailing != null &&
+                            widget.global.showTrailing) ...[
+                          Flexible(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: widget.trailing!,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
   }
 }

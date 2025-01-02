@@ -108,7 +108,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 onTap: (index, _) {
                   sideMenu.changePage(index);
                 },
-                icon: const Icon(Icons.home),
+                activeIcon: const Icon(Icons.home),
+                inactiveIcon: const Icon(Icons.home_outlined),
                 badgeContent: const Text(
                   '3',
                   style: TextStyle(color: Colors.white),
@@ -120,7 +121,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 onTap: (index, _) {
                   sideMenu.changePage(index);
                 },
-                icon: const Icon(Icons.supervisor_account),
+                activeIcon: const Icon(Icons.supervisor_account),
+                inactiveIcon: const Icon(Icons.supervisor_account_outlined),
               ),
               SideMenuExpansionItem(
                 title: "Expansion Item",
@@ -134,7 +136,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     onTap: (index, _) {
                       sideMenu.changePage(index);
                     },
-                    icon: const Icon(Icons.home),
+                    activeIcon: const Icon(Icons.home),
+                    inactiveIcon: const Icon(Icons.home_outlined),
                     badgeContent: const Text(
                       '3',
                       style: TextStyle(color: Colors.white),
@@ -146,7 +149,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     onTap: (index, _) {
                       sideMenu.changePage(index);
                     },
-                    icon: const Icon(Icons.supervisor_account),
+                    activeIcon: const Icon(Icons.supervisor_account),
+                    inactiveIcon: const Icon(Icons.supervisor_account_outlined),
                   )
                 ],
               ),
@@ -155,7 +159,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 onTap: (index, _) {
                   sideMenu.changePage(index);
                 },
-                icon: const Icon(Icons.file_copy_rounded),
+                activeIcon: const Icon(Icons.file_copy_rounded),
+                inactiveIcon: const Icon(Icons.file_copy_outlined),
                 trailing: Container(
                     decoration: const BoxDecoration(
                         color: Colors.amber,
@@ -174,7 +179,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 onTap: (index, _) {
                   sideMenu.changePage(index);
                 },
-                icon: const Icon(Icons.download),
+                activeIcon: const Icon(Icons.download),
+                inactiveIcon: const Icon(Icons.download_outlined),
               ),
               SideMenuItem(
                 builder: (context, displayMode) {
@@ -189,7 +195,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 onTap: (index, _) {
                   sideMenu.changePage(index);
                 },
-                icon: const Icon(Icons.settings),
+                activeIcon: const Icon(Icons.settings),
+                inactiveIcon: const Icon(Icons.settings_outlined),
               ),
               // SideMenuItem(
               //   onTap:(index, _){
@@ -205,7 +212,8 @@ class _MyHomePageState extends State<MyHomePage> {
               // ),
               const SideMenuItem(
                 title: 'Exit',
-                icon: Icon(Icons.exit_to_app),
+                activeIcon: Icon(Icons.exit_to_app),
+                inactiveIcon: Icon(Icons.exit_to_app_outlined),
               ),
             ],
           ),
