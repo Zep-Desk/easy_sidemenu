@@ -10,8 +10,11 @@ class SideMenuItem {
   /// to this [SideMenuItem]
   final void Function(int index, SideMenuController sideMenuController)? onTap;
 
-  /// A Icon to display before [title]
-  final Icon? icon;
+  /// A Icon to display before [title] when the item is active
+  final Icon? activeIcon;
+
+  /// A Icon to display before [title] when the item is inactive
+  final Icon? inactiveIcon;
 
   /// This is displayed instead if [icon] is null
   final Widget? iconWidget;
@@ -41,17 +44,23 @@ class SideMenuItem {
   /// Create custom sideMenuItem widget with builder
   final Widget Function(BuildContext context, SideMenuDisplayMode displayMode)?
       builder;
+
   const SideMenuItem({
     this.onTap,
     this.title,
-    this.icon,
+    this.activeIcon,
+    this.inactiveIcon,
     this.iconWidget,
     this.badgeContent,
     this.badgeColor,
     this.tooltipContent,
     this.trailing,
     this.builder,
-  })  : assert(title != null || icon != null || builder != null,
+  })  : assert(
+            title != null ||
+                activeIcon != null ||
+                inactiveIcon != null ||
+                builder != null,
             'Title, icon and builder should not be empty at the same time'),
         super();
 }
